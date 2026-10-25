@@ -1,144 +1,1183 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Anime VPN</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ระบบทะเบียนบ้านและยานพาหนะ (Pro Edition)</title>
 <style>
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  background:
-    radial-gradient(circle at top, rgba(255,182,193,.4), transparent 40%),
-    linear-gradient(135deg,#6a11cb,#2575fc,#ff9a9e);
-  z-index:-2;
+/* ================= CSS VARIABLES & THEMES ================= */
+:root {
+  --bg: #f4f7fb;
+  --panel: #ffffff;
+  --ink: #1e293b;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --blue: #2563eb;
+  --blue-hover: #1d4ed8;
+  --blue2: #eff6ff;
+  --green: #10b981;
+  --red: #ef4444;
+  --amber: #f59e0b;
+  --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --font: 'Segoe UI', -apple-system, system-ui, sans-serif;
+  transition: background-color 0.3s, color 0.3s;
 }
-.glass{
-  background:rgba(255,255,255,.15);
-  backdrop-filter:blur(16px);
-  border:1px solid rgba(255,255,255,.25);
+
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --panel: #1e293b;
+  --ink: #f8fafc;
+  --muted: #94a3b8;
+  --line: #334155;
+  --blue: #3b82f6;
+  --blue-hover: #60a5fa;
+  --blue2: #1e3a8a;
+  --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 }
-.anime-card{
-  transition:.4s;
+
+/* ================= RESET & BASIC ================= */
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; }
+button, input, select, textarea { font: inherit; transition: all 0.2s ease; }
+button { cursor: pointer; border: 0; border-radius: var(--radius-md); padding: 10px 16px; background: var(--blue); color: #fff; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+button:hover { background: var(--blue-hover); transform: translateY(-1px); }
+button:active { transform: translateY(1px); }
+button.secondary { background: var(--line); color: var(--ink); }
+button.secondary:hover { background: #cbd5e1; color: #0f172a; }
+button.danger { background: #fee2e2; color: var(--red); }
+button.danger:hover { background: #fca5a5; color: #7f1d1d; }
+button.small { padding: 6px 12px; font-size: 13px; }
+button.icon-btn { padding: 8px; border-radius: 50%; width: 40px; height: 40px; }
+
+.hidden { display: none !important; }
+.muted { color: var(--muted); }
+.tiny { font-size: 12px; }
+
+/* ================= LAYOUT ================= */
+.wrap { max-width: 1280px; margin: auto; padding: 24px; }
+.top { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 24px; background: var(--panel); padding: 16px 24px; border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+.brand { display: flex; align-items: center; gap: 16px; }
+.logo { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, var(--blue), #8b5cf6); color: white; display: grid; place-items: center; font-size: 24px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+.brand h1 { font-size: 22px; margin: 0; font-weight: 700; letter-spacing: -0.5px; }
+.brand p { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+
+.userbox { display: flex; align-items: center; gap: 12px; }
+.pill { border-radius: 99px; background: var(--blue2); color: var(--blue); padding: 6px 12px; font-size: 12px; font-weight: 700; }
+
+.nav { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; background: var(--panel); padding: 10px; border-radius: var(--radius-md); box-shadow: var(--shadow); }
+.nav button { background: transparent; color: var(--muted); flex: 1; min-width: 120px; }
+.nav button:hover { background: var(--line); color: var(--ink); }
+.nav button.active { background: var(--blue); color: #fff; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); }
+
+/* ================= CARDS & PANELS ================= */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat, .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+.stat { padding: 24px; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+.stat::after { content: ''; position: absolute; top: 0; right: 0; width: 60px; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05)); }
+.stat .label { font-size: 14px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat .num { font-size: 36px; font-weight: 800; margin-top: 8px; color: var(--ink); }
+
+.panel { padding: 24px; margin-bottom: 20px; }
+.panelhead { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
+.panel h2 { font-size: 18px; margin: 0; font-weight: 700; }
+
+/* ================= FORMS & TABLES ================= */
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.field { display: flex; flex-direction: column; gap: 8px; min-width: 0; margin-bottom: 16px; }
+.field label { font-size: 14px; color: var(--ink); font-weight: 600; }
+.field input, .field select, .field textarea, .search { width: 100%; border: 1.5px solid var(--line); border-radius: var(--radius-md); padding: 12px 16px; background: var(--bg); color: var(--ink); outline: none; }
+.field input:focus, .field select:focus, .field textarea:focus, .search:focus { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); background: var(--panel); }
+.gridform { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.wide { grid-column: 1 / -1; }
+
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--panel); }
+table { border-collapse: collapse; width: 100%; min-width: 800px; }
+th, td { text-align: left; padding: 14px 16px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: middle; }
+th { background: rgba(0,0,0,0.02); color: var(--muted); font-weight: 700; white-space: nowrap; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+[data-theme="dark"] th { background: rgba(255,255,255,0.02); }
+tr:hover td { background: rgba(37, 99, 235, 0.02); }
+tr:last-child td { border-bottom: 0; }
+.actions { display: flex; gap: 8px; white-space: nowrap; }
+.empty { text-align: center; padding: 48px; color: var(--muted); font-size: 15px; }
+
+/* ================= ALERTS & NOTICES ================= */
+.notice { border-radius: var(--radius-md); padding: 16px; background: rgba(245, 158, 11, 0.1); border-left: 4px solid var(--amber); color: var(--ink); font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+
+/* ================= MODALS & TOASTS ================= */
+.modalback { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 16px; z-index: 50; opacity: 0; animation: fadeIn 0.2s forwards; }
+.modal { width: min(760px, 100%); max-height: 90vh; overflow-y: auto; background: var(--panel); border-radius: var(--radius-lg); padding: 24px; box-shadow: 0 25px 80px rgba(0,0,0,0.2); transform: translateY(20px); animation: slideUp 0.3s forwards ease-out; }
+.modalhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
+.modalhead h2 { margin: 0; font-size: 20px; }
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); padding: 12px 24px; background: var(--ink); color: var(--panel); border-radius: 99px; z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.2); font-weight: 600; opacity: 0; animation: toastIn 0.3s forwards, toastOut 0.3s 2.5s forwards; display: flex; align-items: center; gap: 8px; }
+
+/* ================= LOGIN PAGE ================= */
+.loginpage { min-height: 100vh; display: grid; place-items: center; padding: 20px; background: linear-gradient(135deg, var(--bg) 0%, #e2e8f0 100%); }
+[data-theme="dark"] .loginpage { background: linear-gradient(135deg, var(--bg) 0%, #0f172a 100%); }
+.login { width: min(480px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 40px 32px; box-shadow: var(--shadow); text-align: center; }
+.login .logo { margin: 0 auto 20px; width: 64px; height: 64px; font-size: 32px; }
+.login h1 { margin: 0 0 8px; font-size: 24px; font-weight: 800; }
+.login .sub { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
+.login .field { text-align: left; }
+.login .error { color: var(--red); font-size: 13px; margin-top: 12px; font-weight: 600; background: #fee2e2; padding: 8px; border-radius: 8px; display: none; }
+.login .error:not(:empty) { display: block; }
+
+/* ================= UTILS & ANIMATIONS ================= */
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.inline { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.footer { font-size: 13px; color: var(--muted); text-align: center; padding: 24px; }
+
+@keyframes fadeIn { to { opacity: 1; } }
+@keyframes slideUp { to { transform: translateY(0); } }
+@keyframes toastIn { to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+@keyframes toastOut { to { transform: translateX(-50%) translateY(20px); opacity: 0; } }
+
+/* ================= RESPONSIVE ================= */
+@media(max-width: 800px) {
+  .two { grid-template-columns: 1fr; }
+  .top { flex-direction: column; align-items: flex-start; }
+  .userbox { width: 100%; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
 }
-.anime-card:hover{
-  transform:translateY(-6px) scale(1.03);
-  box-shadow:0 25px 60px rgba(255,182,193,.6);
+@media(max-width: 520px) {
+  .nav button { flex: 1 1 45%; }
+  .cards { grid-template-columns: 1fr 1fr; }
+  .stat .num { font-size: 28px; }
 }
-.nav-btn{
-  transition:.3s;
-}
-.nav-btn.active,
-.nav-btn:hover{
-  color:#f9a8d4;
-  transform:translateY(-4px);
+
+/* ================= PRINT STYLES ================= */
+@media print {
+  body { background: #fff !important; color: #000 !important; }
+  .nav, .userbox, .actions, .toolbar, .footer, .notice, button { display: none !important; }
+  .top { box-shadow: none; border: none; padding: 0; margin-bottom: 20px; }
+  .panel, .stat { box-shadow: none; border: 1px solid #000; padding: 10px; break-inside: avoid; }
+  .tablewrap { border: none; }
+  table { width: 100%; border: 1px solid #000; }
+  th, td { border: 1px solid #000; padding: 8px; font-size: 12px; color: #000 !important; }
+  th { background: #eee !important; -webkit-print-color-adjust: exact; }
 }
 </style>
 </head>
+<body>
 
-<body class="text-white min-h-screen pb-24">
-
-<!-- 🌸 Header -->
-<header class="glass mx-4 mt-4 rounded-2xl">
-  <div class="px-6 py-4 flex justify-between items-center">
-    <h1 class="text-2xl font-bold">🌸 Anime VPN</h1>
-    <span class="text-sm opacity-70">Premium</span>
+<!-- Login & Setup -->
+<div id="loginPage" class="loginpage">
+ <div class="login">
+  <div class="logo">🚘</div>
+  <h1>ระบบทะเบียนยานพาหนะ</h1>
+  <div class="sub">จัดการข้อมูลบ้าน รถยนต์ รถจักรยานยนต์<br>ทำงานออฟไลน์ 100% ปลอดภัยในเบราว์เซอร์คุณ</div>
+  
+  <div id="setupBox" class="hidden">
+   <div class="notice" style="text-align: left;"><b>เริ่มต้นใช้งานครั้งแรก:</b> สร้างบัญชีผู้ดูแลระบบ (Admin) เพื่อเริ่มใช้งานระบบ</div>
+   <div class="field"><label>ชื่อแสดงผล (Display Name)</label><input id="setupName" placeholder="เช่น ผู้ดูแลระบบ"></div>
+   <div class="field"><label>ชื่อผู้ใช้ (Username)</label><input id="setupUser" placeholder="admin" autocomplete="username"></div>
+   <div class="field"><label>รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)</label><input id="setupPass" type="password" autocomplete="new-password"></div>
+   <button style="width:100%; margin-top:8px; padding:12px;" onclick="setupAdmin()">🚀 สร้างบัญชีผู้ดูแลระบบ</button>
   </div>
-</header>
-
-<!-- 🔍 Search -->
-<section class="px-6 py-6">
-  <div class="glass rounded-2xl p-4 flex gap-3">
-    <input id="searchInput" placeholder="🔍 ค้นหาประเทศ..."
-      class="flex-grow bg-transparent outline-none text-white placeholder-white/70">
-    <button onclick="filterServers()"
-      class="bg-pink-400 hover:bg-pink-500 px-6 py-2 rounded-xl">
-      Search
-    </button>
+  
+  <div id="loginBox" class="hidden">
+   <div class="field"><label>ชื่อผู้ใช้</label><input id="loginUser" autocomplete="username" placeholder="กรอกชื่อผู้ใช้..."></div>
+   <div class="field"><label>รหัสผ่าน</label><input id="loginPass" type="password" autocomplete="current-password" placeholder="กรอกรหัสผ่าน..." onkeydown="if(event.key==='Enter')login()"></div>
+   <button style="width:100%; margin-top:8px; padding:12px;" onclick="login()">🔐 เข้าสู่ระบบ</button>
   </div>
-</section>
-
-<!-- 🌐 Servers -->
-<section class="px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-         id="serversList"></section>
-
-<!-- 📌 Bottom Bar -->
-<nav class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] max-w-md glass rounded-3xl shadow-xl">
-  <div class="flex justify-around py-3 text-center">
-    
-    <button class="nav-btn active flex flex-col items-center text-sm">
-      🏠
-      <span class="text-xs">Home</span>
-    </button>
-
-    <button class="nav-btn flex flex-col items-center text-sm">
-      🌐
-      <span class="text-xs">Servers</span>
-    </button>
-
-    <button class="nav-btn flex flex-col items-center text-sm">
-      ⚡
-      <span class="text-xs">Connect</span>
-    </button>
-
-    <button class="nav-btn flex flex-col items-center text-sm">
-      ⭐
-      <span class="text-xs">Premium</span>
-    </button>
-
-    <button class="nav-btn flex flex-col items-center text-sm">
-      ⚙️
-      <span class="text-xs">Settings</span>
-    </button>
-
+  
+  <div id="loginError" class="error"></div>
+  
+  <div style="margin-top: 24px;">
+    <button class="secondary icon-btn" onclick="toggleTheme()" title="สลับโหมดมืด/สว่าง">🌓</button>
   </div>
-</nav>
+ </div>
+</div>
+
+<!-- Main App -->
+<div id="app" class="hidden">
+ <div class="wrap">
+  <header class="top">
+   <div class="brand">
+    <div class="logo">🚘</div>
+    <div>
+      <h1>ระบบทะเบียนบ้านและยานพาหนะ</h1>
+      <p>จัดการข้อมูลบ้าน · รถยนต์ · รถจักรยานยนต์ อย่างมืออาชีพ</p>
+    </div>
+   </div>
+   <div class="userbox">
+     <button class="secondary icon-btn" onclick="toggleTheme()" title="สลับโหมดมืด/สว่าง">🌓</button>
+     <div style="text-align: right;">
+        <span id="who" style="font-weight:600; display:block;"></span>
+        <span id="rolePill" class="pill" style="display:inline-block; margin-top:4px;"></span>
+     </div>
+     <button class="secondary" onclick="logout()">ออกจากระบบ</button>
+   </div>
+  </header>
+  
+  <nav class="nav">
+   <button class="active" data-tab="dashboard" onclick="tab('dashboard')">📊 ภาพรวม</button>
+   <button data-tab="records" onclick="tab('records')">📋 ทะเบียนทั้งหมด</button>
+   <button data-tab="houses" onclick="tab('houses')">🏠 จัดการบ้าน</button>
+   <button data-tab="vehicles" onclick="tab('vehicles')">🚗 จัดการรถ</button>
+   <button data-tab="users" id="usersNav" onclick="tab('users')">👥 บัญชีผู้ใช้</button>
+   <button data-tab="backup" onclick="tab('backup')">💾 สำรองข้อมูล</button>
+  </nav>
+  
+  <main id="main"></main>
+  
+  <div class="footer">
+    ข้อมูลทั้งหมดถูกเก็บไว้อย่างปลอดภัยภายในเบราว์เซอร์นี้เท่านั้น (Local Storage) <br>
+    © 2024 Vehicle & House Registration System Pro
+  </div>
+ </div>
+</div>
+
+<!-- Portals -->
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
 
 <script>
-const servers=[
- {country:'United States',ip:'us.vpn.smilevpn.net',status:'Online',speed:'Fast',flag:'🇺🇸'},
- {country:'Japan',ip:'jp.vpn.smilevpn.net',status:'Online',speed:'Medium',flag:'🇯🇵'},
- {country:'Singapore',ip:'sg.vpn.smilevpn.net',status:'Online',speed:'Fast',flag:'🇸🇬'},
- {country:'United Kingdom',ip:'uk.vpn.smilevpn.net',status:'Busy',speed:'Slow',flag:'🇬🇧'},
- {country:'Australia',ip:'au.vpn.smilevpn.net',status:'Online',speed:'Fast',flag:'🇦🇺'},
- {country:'Germany',ip:'de.vpn.smilevpn.net',status:'Online',speed:'Medium',flag:'🇩🇪'}
+/* ================= GLOBAL STATE & DB ================= */
+// อัปเดต KEY เป็น v4 เพื่อดึงข้อมูล อาคาร A + อาคาร B ชุดล่าสุด
+const KEY = 'thaiHouseVehicleManager_v4';
+let db = null;
+let current = null;
+let activeTab = 'dashboard';
+let editing = null;
+
+// Initialize Theme
+const currentTheme = localStorage.getItem('theme') || 'light';
+if(currentTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+
+// ----------------------------------------------------
+// ข้อมูลจัดเต็ม 200+ รายการ (รวมอาคาร A และ อาคาร B)
+// ----------------------------------------------------
+const initialRows = [
+ // --- ข้อมูลอาคาร A (88/...) ---
+ {house: '88/1', car: 'ศท 4722', motor: '', note: 'นายเกษมสันต์ รังสีมงคล'},
+ {house: '88/2', car: 'ฆจ 9445', motor: '', note: 'นายเกษมสันต์ รังสีมงคล'},
+ {house: '88/3', car: '1กณ 5214', motor: '', note: 'นางสาวราตรี บ้านใหม่'},
+ {house: '88/4', car: 'กย 5568', motor: '', note: ''},
+ {house: '88/7', car: '7ขบ 9828', motor: '', note: 'คุณกิตพจน์ รอดป้อง, สลับจอด'},
+ {house: '88/8', car: 'ฒข 8928', motor: '', note: 'Visitor'},
+ {house: '88/9', car: '', motor: 'วขค 237', note: ''},
+ {house: '88/12', car: '', motor: '3ขล 265', note: ''},
+ {house: '88/13', car: '', motor: 'ฆญ 3570', note: ''},
+ {house: '88/20', car: '3ขถ 3936', motor: '', note: 'MRS. Fiorimae Jane Bitac Japzan'},
+ {house: '88/21', car: '4กณ 8758', motor: '', note: ''},
+ {house: '88/22', car: '3กภ 4831, ร1095', motor: '', note: 'นางสาวอภิญญา วีระฐานะ'},
+ {house: '88/23', car: '9กญ 2454', motor: '', note: 'สลับจอด'},
+ {house: '88/24', car: 'ณฐ 8759', motor: '', note: 'นายวิชัย ว่องวาริพทย์'},
+ {house: '88/25', car: 'ฌอ 114', motor: '', note: 'นางสาวสุวรรณา ณรงค์วิชัยวิวัฒน์'},
+ {house: '88/26', car: 'ตอ 8141', motor: '', note: 'นายเกษมสันต์ รังสีมงคล'},
+ {house: '88/27', car: '2ขถ 3995', motor: '', note: 'นายรัชกฤช วิทยภคกุล'},
+ {house: '88/28', car: '', motor: '6ขท 5794', note: 'คันที่ 2 รายเดือน'},
+ {house: '88/29', car: '5ขบ 4341, 4กท 1406', motor: '', note: ''},
+ {house: '88/31', car: '3ขณ 6259', motor: '', note: 'นายชยันนท์ ใจเฉลียว'},
+ {house: '88/32', car: 'ษว 7024', motor: '', note: ''},
+ {house: '88/33', car: 'กน 9455', motor: '', note: 'สลับจอด'},
+ {house: '88/34', car: 'ญร 1108', motor: '', note: ''},
+ {house: '88/35', car: '4ขษ 2515', motor: '', note: 'นางสาวจันทร์ศรี ทานาม'},
+ {house: '88/36', car: '', motor: '4ม 1868', note: 'นายบุญชัย แซ่ตั้ง'},
+ {house: '88/37', car: '4กภ 4303', motor: '', note: 'นายบุญชัย แซ่ตั้ง'},
+ {house: '88/38', car: '9กณ 2564, 6กญ 7056', motor: '', note: 'พิตติพล พุฒินาถวรพงศ์'},
+ {house: '88/39', car: '', motor: '9ทน 8689, 5กณ 8647', note: 'นางสาวธนิดา พันธ์ปรุ (คันที่ 2, 3 รายเดือน)'},
+ {house: '88/40', car: '2ขง 9717', motor: '', note: 'นางสาวพนารัตน์ กรมรินทร์'},
+ {house: '88/41', car: '5กก 4635', motor: '', note: 'ตามสิทธิ์'},
+ {house: '88/42', car: '', motor: 'สผ 2515', note: ''},
+ {house: '88/43', car: '4ขท 4744, กท 9059', motor: '', note: 'นายวิทยา ชยุติแสงไพศาล'},
+ {house: '88/44', car: '7กบ 5365, ฆห 429', motor: '', note: 'นางสาวเสาวณีย์ ศิริวัช'},
+ {house: '88/45', car: '8กธ 1221', motor: '', note: 'สลับจอด'},
+ {house: '88/46', car: 'ฆห 6628, 4กร 763', motor: '', note: 'นายธีรณัฐ พัคค์สุนทร'},
+ {house: '88/47', car: '7ขก 2158', motor: '', note: 'นางสาวสุนีย์ พัคค์สุนทร'},
+ {house: '88/48', car: '', motor: 'ศน 9829, ฆล 99', note: 'นายสมชาย'},
+ {house: '88/49', car: '2ขล 6919, 4ฒญ 1597', motor: '3ขย 6483, 1กย 78, 1กฒ 4225', note: 'คันที่ 2, 3 รายเดือน'},
+ {house: '88/50', car: 'ญณ 2076, 6กบ 3042', motor: '', note: 'นางสาวเกษรา สิเทตะสาร (และคันที่ 2 รายเดือน)'},
+ {house: '88/51', car: '7ขณ 7847', motor: '', note: 'นายวิรุธวิญช์ อาภาศศิพะกุล'},
+ {house: '88/52', car: '', motor: '1กณ 7555', note: 'Visitor รายวัน'},
+ {house: '88/54', car: '2กร 206, ขกม 5193, ฎว 9001', motor: '', note: 'คุณหทัยรัตน์'},
+ {house: '88/55', car: '3กจ 4120', motor: '', note: 'สลับจอด'},
+ {house: '88/56', car: '', motor: '4ขฮ 4120', note: ''},
+ {house: '88/58', car: '6ขฐ 5408', motor: '', note: 'นายกิตติ ละไมลิขสิทธิ์'},
+ {house: '88/59', car: 'ฎภ 7126, 4ขจ 7231', motor: '', note: 'ผู้เช่า'},
+ {house: '88/61', car: 'ฆผ 2282, 9กข 529', motor: '', note: ''},
+ {house: '88/62', car: '4ขย 1444, ฆว 1551', motor: '', note: ''},
+ {house: '88/63', car: '', motor: 'ขกพ 6213', note: 'นายวีรศักดิ์ สีฟ้า'},
+ {house: '88/64', car: '5ขม 4103', motor: '', note: 'นางสาวสุภชา หยุ่มไธสง'},
+ {house: '88/65', car: 'วค 9622', motor: '', note: 'นายธวัชชัย ธวัชธนไพศาล'},
+ {house: '88/66', car: '7กท 184', motor: '', note: ''},
+ {house: '88/67', car: '5ขท 9199', motor: '', note: 'คันที่ 2 รายเดือน'},
+ {house: '88/68', car: '', motor: '3ขล 4965', note: 'นางสาวสุดาวรรณ อริยะทรัพย์'},
+ {house: '88/69', car: 'วง 7967', motor: '', note: ''},
+ {house: '88/70', car: 'วล 979, ฆถ 7648', motor: '', note: ''},
+ {house: '88/72', car: '', motor: '1กณ 4312', note: ''},
+ {house: '88/73', car: '', motor: '4กณ 6654', note: ''},
+ {house: '88/74', car: 'พบ 1791', motor: '', note: 'นายวิฑูรย์'},
+ {house: '88/75', car: '6กภ 8306', motor: '', note: 'นางสาวสมใจจินต์ ตันติการุณย์'},
+ {house: '88/76', car: '6ขง 3563', motor: '', note: 'คุณภารดี ธนพรชัยภัทร'},
+ {house: '88/77', car: 'ฎอ 2057', motor: '', note: 'สลับจอด'},
+ {house: '88/78', car: 'ษร 7358', motor: '', note: ''},
+ {house: '88/79', car: '4กภ 6382', motor: '', note: 'นางสาวสุชาสิณี บุษยสถิตย์, สลับจอด'},
+ {house: '88/80', car: '7ขง 9079', motor: '', note: ''},
+ {house: '88/81', car: '4ขช 1985', motor: '', note: 'นางสาวสถาพร วิริยะเวสมกุล'},
+ {house: '88/82', car: 'ศท 4195', motor: '', note: ''},
+ {house: '88/83', car: '1ขท 263, ขท 440', motor: '', note: 'นางสาวทิพวรรณ พรมุตตาวงศ์'},
+ {house: '88/84', car: 'ฒย 2857', motor: '', note: ''},
+ {house: '88/86', car: 'ฎง 408', motor: '', note: 'นายสุชัย ลิมช์ไพฑูรย์'},
+ {house: '88/87', car: 'ชร 8328', motor: '', note: 'Miss Makiko Siriphant'},
+ {house: '88/88', car: '7ขช 5611, 3ขย 3014', motor: '', note: 'นางสาวสุวรรณา ณรงค์วิชัยวิวัฒน์'},
+ {house: '88/89', car: '4กภ 816', motor: '', note: 'นางสาวอัจฉรา สุวิทยาพรสกุล'},
+ {house: '88/90', car: 'วย 6288', motor: '', note: 'นางสาวกรรณิการ์ โพธิมา'},
+ {house: '88/91', car: '9กภ 6554, กท 446', motor: '3ขต 1743', note: 'คันที่ 2 รายเดือน'},
+ {house: '88/92', car: '5ขจ 5762', motor: '', note: ''},
+ {house: '88/94', car: 'กด 5187', motor: '', note: 'นายวุฒิบูรณ์ ฟ้าอำนวยผล'},
+ {house: '88/97', car: '6ขล 9343', motor: '', note: 'สนธยา สังข์โคตร'},
+ {house: '88/98', car: '9ขณ 5496', motor: '', note: 'นางสาวสุธิดา วรแสงศรีจำเริญ'},
+ {house: '88/99', car: '', motor: '3ขง 9963', note: 'นางสาวสุธิดา วรแสงศรีจำเริญ'},
+ {house: '88/100', car: '4ขก 2196, ภฎ 4897', motor: '', note: 'นางสาวสุธิดา วรแสงศรีจำเริญ'},
+ {house: '88/102', car: '', motor: '7ขณ 5512', note: 'จตุพร อัศวรุจิรกุล'},
+ {house: '88/103', car: 'กบ 9524', motor: '', note: 'นายไพรัช มงคลสบ'},
+ {house: '88/104', car: '', motor: '9ขณ 1449', note: 'Mr. Bhone Thaw Khant'},
+ {house: '88/105', car: '', motor: '7ขท 9854, ขก 9768', note: 'บุญญ.'},
+ {house: '88/106', car: '4ขก 7813', motor: '', note: ''},
+ {house: '88/107', car: '7กพ 2196', motor: '', note: ''},
+ {house: '88/108', car: '3ขล 4659', motor: '', note: ''},
+ {house: '88/109', car: '7กณ 8925, 4ขท 6533', motor: '', note: 'นายวสุ กีระนันทน์, สลับจอด'},
+ {house: '88/110', car: '5กต 6964, 1ขก 4212', motor: '', note: 'นายต่อศักดิ์ บุญบางยาง'},
+ {house: '88/112', car: '', motor: '1ขร 440, 7ขญ 1756', note: 'กิตติ์ศักดิ์ (ปลา), คันที่ 2 รายเดือน'},
+ {house: '88/113', car: '4กง 4110, กธว 429, ตข 4110', motor: '', note: 'ผ่องศรี หอยแก้ว'},
+ {house: '88/115', car: 'ฆต 5843, 9ขฎ 8741, 4ฒณ 1372, ลจ 347, 8กจ 5650', motor: '', note: 'คันที่ 2 รายเดือน, สลับจอด'},
+ {house: '88/118', car: '8กอ 8994, ฮภ 350', motor: '', note: 'ฐนพรรณ สรายทอง'},
+ {house: '88/124', car: '7ขว 7156, 6กท 1230, 3กฆ 4560', motor: '', note: 'คุณอนงค์'},
+ {house: '88/125', car: '3ขล 2526', motor: '', note: 'อริศรา ฝูงพิลา'},
+ {house: '88/127', car: '6กน 4500, 2กช 7739, 6ขร 4550, 6ขท 1279', motor: '', note: 'คุณชีเดช คงเดิม, สลับจอด'},
+ {house: '88/129', car: '', motor: 'รว 4146', note: 'สมพร (ผู้เช่า), จักรยาน'},
+ {house: '88/130', car: 'สต 5509', motor: '', note: ''},
+ {house: '88/132', car: '8กญ 7682, 2ขล 6652', motor: '', note: 'นายธวัชชัย โรจนวิศาล, คันที่ 2 รายเดือน'},
+ {house: '88/133', car: 'กว 2793, 8กช 832', motor: '', note: ''},
+ {house: '88/134', car: '3ขย 4528', motor: '', note: 'ภัทรสุดา แก่นสาร'},
+ {house: '88/135', car: 'ฆฉ 4005', motor: '', note: ''},
+ {house: '88/136', car: 'ฎง 7525, สยธ 806', motor: '', note: 'วริษา รัตนานนท์, คันที่ 2 รายเดือน'},
+ {house: '88/138', car: 'ฎฎ 1215, 3กฐ 4935', motor: '', note: ''},
+ {house: '88/139', car: '2กส 6249, 2กท 7227, 4ขจ 2532, 2ฌก 8217', motor: '', note: 'นางอารยา สุธรรม, คันที่ 3, 2 รายเดือน, สลับจอด'},
+ {house: '88/140', car: '9กต 5532, 2กช 3030, 2กม 5252', motor: '', note: 'นายมาโนช ชำราญธรรม, สลับจอด'},
+ {house: '88/141', car: '', motor: '4กท 9779, 5ขท 2139', note: 'ศุภชัย ลีพวนิช, คันที่ 3 รายเดือน'},
+ {house: '88/142', car: '4กก 2782', motor: '', note: 'อรรถกร กรุณานนท์'},
+ {house: '88/144', car: '', motor: '9ขพ 3233', note: 'สุภชา วังงาม'},
+ {house: '88/145', car: '3กข 6728', motor: '', note: 'วริยา ระรื่นจิตต์'},
+ {house: '88/146', car: '9กฉ 103', motor: '', note: 'วิภาดี ยังยืน'},
+ {house: '88/147', car: '', motor: 'ขงจ 666', note: 'นางสาวเบญจพร ศิวะพรประสงค์'},
+ {house: '88/148', car: '4ขฎ 6195', motor: '', note: ''},
+ {house: '88/150', car: '', motor: 'ขขว 8745, รขง 2817', note: 'นางสาวกัมธิมา จุลานนท์'},
+ {house: '88/151', car: '5กบ 5909', motor: '', note: 'นายมนตรี ภูมิงศร์'},
+ {house: '88/152', car: '', motor: '1กษ 7888, ขบง 119', note: 'ประพันธ์ จีพัฒพงษ์'},
+ {house: '88/153', car: 'ชร 7959', motor: '', note: 'ภูวิศ หงสากวิวัฒน์'},
+ {house: '88/154', car: '4ขย 8834', motor: '', note: 'เกษมสันต์ รังสีมงคล'},
+ {house: '88/155', car: '8กฬ 7157', motor: '1กฒ 5214, ขษ 5346', note: 'ปิยภัทร โตสัจจวงค์, คันที่ 2 / รายเดือน'},
+ {house: '88/156', car: 'ฎย 5415', motor: '', note: 'ผู้เช่า'},
+ {house: '88/157', car: '1กม 9710', motor: '', note: ''},
+ {house: '88/159', car: '2ขบ 8239', motor: '', note: ''},
+ {house: '88/160', car: '', motor: '2ขล 6464, 2ขช 5198', note: 'MUHAMMAD AMIN DHAMANI'},
+ {house: '88/161', car: 'ญร 8490', motor: '', note: 'เกษมสันต์ รังสีมงคล'},
+ {house: '88/162', car: '', motor: '3ขย 498', note: 'จิรัฐชนิน ศานติจิรพัฒน์'},
+ {house: '88/163', car: '', motor: '1ขบ 7974', note: ''},
+ {house: '88/164', car: '6ขง 3180, 4กต 7009, ลกบ 588, วชน 596', motor: 'ชพ 2011', note: 'สุวรรณ กุมาร, ตามสิทธิ์, สลับจอด'},
+ {house: '88/165', car: '4กพ 8429, 4กน 5203', motor: 'ฆพ 1067', note: 'ศุภานัน สกุลเรืองวิทยา, สลับจอด'},
+ {house: '88/166', car: 'ฎฐ 4261, 1กพ 544', motor: '', note: 'ชนิดา อู่อก้อน'},
+ {house: '88/167', car: '2กฎ 816', motor: '', note: ''},
+ {house: '88/168', car: 'กธ 3986', motor: '', note: ''},
+ {house: '88/169', car: 'กม 7914', motor: '', note: 'ธนชาติ อรุณรุ่ง'},
+ {house: '88/170', car: 'กท 938', motor: '', note: 'นางจุฑามาศ เตียวสุรินทร์, คันที่ 2 รายเดือน'},
+ {house: '88/171', car: '', motor: 'สมณ 601', note: 'สรินพรรณ ศรีนาอุทัยการ'},
+ {house: '88/172', car: '2กม 8168', motor: '', note: ''},
+ {house: '88/173', car: '', motor: '7กท 6020, 7ขธ 159', note: 'ศุภาวรรณ ทองบ่อใบ (ผู้เช่า)'},
+ {house: '88/174', car: '6กข 2214', motor: '', note: 'คันที่ 2 รายเดือน'},
+ {house: '88/175', car: '', motor: '5กล 214, 3ขอ 2152', note: 'K.Kat'},
+ {house: '88/176', car: '8กร 4865', motor: '', note: 'กัญจนา แซ่โค้ว'},
+ {house: '88/177', car: '', motor: '4ขณ 6305', note: 'Mr. AMEL'},
+
+ // --- ข้อมูลอาคาร B (90/...) ---
+ {house: '90/1', car: '2 กย 8446', motor: '', note: 'คุณเมธี บุญรอด'},
+ {house: '90/2', car: '1กข3112', motor: '', note: ''},
+ {house: '90/3', car: '', motor: '2กฌ9326', note: ''},
+ {house: '90/4', car: '6 กณ 2375', motor: '', note: 'อนงค์ทิพย์ คุรุรัตน์พงษ์, คันที่ 2 รายเดือน'},
+ {house: '90/5', car: '2 กค 9547', motor: '', note: 'คันที่ 2 รายเดือน ตามสิทธิ์'},
+ {house: '90/6', car: '3ขท1351', motor: '', note: 'สลับจอด'},
+ {house: '90/7', car: '8กจ5846', motor: '', note: 'นางสาววริศรา พิลาส'},
+ {house: '90/8', car: '', motor: '5 ขถ 9398', note: 'นางสาวมนัสนันท์ อินทร'},
+ {house: '90/9', car: '', motor: '5 ขท 649, 9ขบ7995', note: 'สลับจอด'},
+ {house: '90/10', car: '2 ขส 2725', motor: '', note: 'นายพรชัย อาสปัญญาสาร'},
+ {house: '90/11', car: '5 ขจ326', motor: '', note: 'นิติ วรรณชัยวงศ์'},
+ {house: '90/12', car: '2 ขก 3860, สม9994', motor: '', note: ''},
+ {house: '90/13', car: 'ศห5380, 5กย5335', motor: '', note: 'คันที่ 2 รายเดือน'},
+ {house: '90/14', car: '', motor: 'ไม่มีป้ายทะเบียน, วขธ4598', note: 'นายพงศกร ชาตินันทฤกษ์'},
+ {house: '90/15', car: 'ศร8093, 2ขช6567', motor: '', note: 'นายอัครปมัณย นวมราฐธิปดี'},
+ {house: '90/17', car: '', motor: '1ขม1661', note: 'นายสุรเดช เหล่าธารญาฤทธิ์, คันที่ 2 รายเดือน'},
+ {house: '90/18', car: '5 ขก 1962', motor: '', note: ''},
+ {house: '90/19', car: 'ฎพ 2416, ขต4951', motor: '', note: 'ศุภรุจ พูนไธสง'},
+ {house: '90/20', car: '5 ขช 5666', motor: '', note: 'เกษมสันต์ รังสีมงคล'},
+ {house: '90/21', car: '5 ขจ 6329', motor: '', note: 'วนิดา วังกระเนตร์'},
+ {house: '90/22', car: '9 กช 2515', motor: '', note: 'นายณธัช มังคะละ'},
+ {house: '90/23', car: '4ขณ3387', motor: '', note: 'คันที่ 2 รายเดือน'},
+ {house: '90/24', car: '9 กฒ 6462', motor: '', note: 'นางสาว ญาณิฐา ท้าวมา'},
+ {house: '90/25', car: '', motor: '1ขว7106', note: 'วริวัลย์ ศรีธนวัฒน์'},
+ {house: '90/26', car: '4 ขท 2391', motor: '', note: 'นายชนาธิป ดีใจ'},
+ {house: '90/27', car: '4 ขย 8596', motor: '', note: 'วารี เช้าค่ำ'},
+ {house: '90/28', car: '1กช489', motor: '', note: 'นางสาวสุนทรี รุจิธานนท์'},
+ {house: '90/29', car: '5กณ7767', motor: '', note: ''},
+ {house: '90/30', car: 'กพ 872', motor: '', note: 'นางสาววิไลลักษณ์ พลแสน'},
+ {house: '90/31', car: '2ขส672', motor: '', note: ''},
+ {house: '90/32', car: '2ขต9525', motor: '', note: ''},
+ {house: '90/33', car: 'งจ 4445', motor: '', note: 'นางสาวสุกัญญา นามสำโรง'},
+ {house: '90/34', car: '', motor: '4 ขค 4864', note: 'นายเทียน ทองคำ, คันที่ 2 รายเดือน'},
+ {house: '90/35', car: '3 ขย 5454, กต4591, 2กจ8910, ฬทธ 222', motor: '', note: 'ตามสิทธิ์'},
+ {house: '90/36', car: '2ขฎ5232', motor: '', note: 'สลับจอด'},
+ {house: '90/37', car: 'ฆณ 4495', motor: '', note: 'นายอนุพงศ์'},
+ {house: '90/38', car: '', motor: 'พตข 279', note: ''},
+ {house: '90/39', car: '', motor: 'ชค 1010', note: 'รปภ.'},
+ {house: '90/40', car: '1 ขฆ 8384', motor: '', note: 'นางดวงตา กิติเร่, คันที่ 2 รายเดือน'},
+ {house: '90/41', car: '', motor: '8 ขย 739, 4 ขพ 8384', note: 'ศิริ จงเกษมถาวร, คันที่ 3 รายเดือน'},
+ {house: '90/42', car: '9 กณ 1431', motor: '', note: 'นายจตุพร บุษยสถิตย์'},
+ {house: '90/43', car: '', motor: 'กข 5833', note: ''},
+ {house: '90/44', car: '7 กน 2707, 9กม4703', motor: '', note: 'นางสาวสุพัตรา หาญกุลพงษ์'},
+ {house: '90/45', car: 'ฌข 2295', motor: '', note: 'วิโรจน์ สุขเลิศ'},
+ {house: '90/46', car: '', motor: '3 ขล 5113', note: 'หนึ่งฤทัย ตรีวุฒิกร, คันที่ 2 รายเดือน'},
+ {house: '90/47', car: '1 ขค 7271', motor: '', note: 'นางสาวจุลิน่า รักษาเชื้อ, สลับจอด'},
+ {house: '90/48', car: '2 กง 8278', motor: '', note: ''},
+ {house: '90/49', car: '3 ขค 3107', motor: '', note: 'สกานต์ ตัญญติรยรัตน์'},
+ {house: '90/50', car: '6กส5175', motor: '', note: 'คุณวิไลวรรณ ตันอังสนากุล, คันที่ 2 รายเดือน'},
+ {house: '90/51', car: '2 ขค 1769', motor: '', note: 'คันที่ 2 รายเดือน'},
+ {house: '90/52', car: '', motor: '1ขว2456', note: 'นางสาวสถาพร เลิศพัฒนาทรัพย์'},
+ {house: '90/53', car: 'สห 6446', motor: '', note: ''},
+ {house: '90/54', car: '2 กบ 6446, 7ขฎ4067', motor: '', note: 'พงศ์พัชร คลังเปรมจิตต์'},
+ {house: '90/55', car: '3 กถ 4312, 3กย8927, 2ขล7733, 3 ขพ 8225, 6 กม 2177', motor: 'อวบ628', note: 'นางสาวมลสุดา อร่ามกิจโพธา'},
+ {house: '90/57', car: '1 ขฉ 2265, ศร 4326', motor: '', note: 'ญาดา อัครทิพย์ ชัชรีย์ หวังพิทักษ์ดุจ'},
+ {house: '90/58', car: '3 ขญ 2474', motor: '', note: 'นางสาวประนอม ทองอิ่ม'},
+ {house: '90/59', car: '', motor: 'กข 9085', note: ''},
+ {house: '90/60', car: '', motor: '8ขณ3867', note: 'นายวัชรพงษ์ ภาพสมุทร, คันที่ 2 รายเดือน'},
+ {house: '90/61', car: 'ชล 1988', motor: '', note: 'สลับจอด'},
+ {house: '90/62', car: 'พค 8048', motor: '', note: ''},
+ {house: '90/63', car: '4 กศ 6836', motor: '', note: 'อิสรีย์ พฤกษ์ตระกูล'},
+ {house: '90/64', car: '1 กช 3532', motor: '', note: 'นายยศนา ปัทมฐิตานนท์'},
+ {house: '90/65', car: 'ฆพ6364', motor: '', note: ''},
+ {house: '90/66', car: '', motor: '4ขม367', note: ''},
+ {house: '90/68', car: '8 กข 3219', motor: '', note: 'นางสาวเสาร์รำลึก แสนสิลา'},
+ {house: '90/69', car: '', motor: '4กส7140', note: 'คันที่ 2 รายเดือน'},
+ {house: '90/70', car: 'สม7219', motor: '', note: ''},
+ {house: '90/71', car: 'วย1653, 9กว3433, 5ขม 1833', motor: '', note: ''},
+ {house: '90/72', car: '4 กข 9396', motor: '', note: 'อรรัตน์ จงหวัง'},
+ {house: '90/73', car: '', motor: 'ว8827', note: 'นายชลิต จารุมณเฑียรบวร, สลับจอด'},
+ {house: '90/74', car: '5ขด6181', motor: '', note: ''},
+ {house: '90/76', car: 'ฆม 6352', motor: '', note: 'นายอนันต์ วีขำ'},
+ {house: '90/77', car: '', motor: '2 ขด 4542', note: 'คันที่ 2 รายเดือน'},
+ {house: '90/78', car: '4 กก 3699', motor: '', note: 'นางสาววรลักษณ์ รักประกอบกิจ, สลับจอด'},
+ {house: '90/79', car: 'ฎณ 3199, 9กง5973, 9กร 2029, ฆฐ 4859, 3ฒน 7994', motor: '', note: 'นางสาววรลักษณ์ รักประกอบกิจ, สลับจอด'},
+ {house: '90/81', car: '8 กม 825', motor: '', note: 'นายปลัดถกร ปัจจังหรีด'},
+ {house: '90/82', car: '3 ขช 2497', motor: '', note: 'นางสาวอารีย์ ปราณีตพลกรัง'},
+ {house: '90/83', car: 'ฆช 1946', motor: '', note: 'ตามสิทธิ์'},
+ {house: '90/84', car: 'กว2619', motor: '', note: 'คันที่ 2 รายเดือน'},
+ {house: '90/85', car: '', motor: 'สลท706', note: 'Jakub krzysztof siberski'},
+ {house: '90/86', car: '', motor: '5 กค 4966', note: 'นางธัญชนก อนุโรจน์'},
+ {house: '90/87', car: 'ชช 4566', motor: '', note: 'นางสาวบุรณินท์ธารา บุปผาภาษณ์'},
+ {house: '90/88', car: 'ชพ 3564', motor: '', note: ''},
+ {house: '90/89', car: '3ขด8762', motor: '', note: 'อารีย์วรรณ'},
+ {house: '90/90', car: 'ษง 2188', motor: '', note: ''},
+ {house: '90/91', car: '4กต6962', motor: '', note: ''},
+ {house: '90/92', car: 'กล7695, 7ขก4439', motor: '', note: ''},
+ {house: '90/93', car: 'กล 2274', motor: '', note: ''},
+ {house: '90/94', car: 'ฎน984', motor: '', note: 'คันที่ 2 รายเดือน'},
+ {house: '90/95', car: '', motor: '5ขด2296', note: 'นางสาวลัลคนา ศรีชูวัจน์'},
+ {house: '90/96', car: '5 กญ 4824, ษอ 1771, สม 7219', motor: '', note: 'นงนุช มโนยางกูร, สลับจอด'},
+ {house: '90/98', car: '6 ขผ 5597', motor: '', note: 'นางสาว ฐิติชญาน์ ประชานุรักษ์'},
+ {house: '90/99', car: '2 กค 3178', motor: '', note: 'ศุภลักษณ์ สมบูรณ์หรรษา'},
+ {house: '90/100', car: '1 กก 3564', motor: '', note: 'นายจร ขวัญบุญจันทร์'},
+ {house: '90/101', car: 'กม6420', motor: '', note: 'นิธิ ยูนุช'},
+ {house: '90/102', car: '', motor: '8 กอ 1614', note: 'นางสาวอิศรา เมฆรักษาพานิช'},
+ {house: '90/103', car: '9 กว 4291', motor: '', note: 'นางสาววรรณณิสา วงษา'},
+ {house: '90/104', car: '6กง9960', motor: '', note: 'คันที่ 3 รายเดือน'},
+ {house: '90/105', car: '', motor: '3 ขพ 4848', note: 'นางสาวประภัสสร อยู่ดี'},
+ {house: '90/106', car: '6 ขท 5461, 6 ขศ 615, 6ขส615', motor: '', note: 'ภัทระ จิรนบูรณ์, สลับจอด'},
+ {house: '90/107', car: 'ศณ 7645, 7 ขฆ 7944', motor: '', note: 'ชาญพิชัย ชินสำราญ, สิทธิชัย พันธ์ไพศาล, สลับจอด'},
+ {house: '90/108', car: '5 ขธ 8400, 7ขษ6457, พม8618, 7ขส1096, 2 กบ 952', motor: '', note: 'ดำรงค์ เตชะนวุธ, คันที่ 2 รายเดือน'},
+ {house: '90/109', car: 'ญผ 9929, 1ขส5298, 7ขต8503', motor: '', note: 'คันที่ 3 รายเดือน'},
+ {house: '90/110', car: 'ฆษ 4437', motor: '', note: 'มยุรา ประวรกรศิริ'},
+ {house: '90/111', car: '4 ขฎ 6818, 2ขฎ4052', motor: '', note: 'นายวีรยุทธ, คันที่ 2'},
+ {house: '90/112', car: '', motor: '8 กก 4268, ฆถ 6089, 2กต 4369', note: 'คุณณฐมน ดวงพิทักษ์พงศ์, คันที่ 2 รายเดือน'},
+ {house: '90/114', car: 'ภภ 4993', motor: '', note: 'นางสาวอิศรา เมฆรักษาพานิช, สลับจอด'},
+ {house: '90/115', car: '9ขณ 5083', motor: '', note: 'พิชัย เหลืองสาริณี'},
+ {house: '90/116', car: '', motor: '29136 (ภาคใต้), 9 ขอ 1527', note: 'Mr-Robert, สลับจอด'},
+ {house: '90/117', car: '', motor: 'ชพ9427, 9 กฐ 1423, 4ขต3162', note: 'นายสิทธิโชค ขุนจันทร์, สลับจอด'},
+ {house: '90/118', car: '1 ขส 7449', motor: '', note: 'นางสาวเสาวณีย์ เหรียญสุโขพร, สลับจอด'},
+ {house: '90/119', car: '2 กล 4149', motor: '', note: 'วรินทร์พร นำพิทักษ์ชัยกุล'},
+ {house: '90/120', car: 'วง 1727', motor: '', note: 'นางสาวรติจุฑา เบญจพลากร'},
+ {house: '90/121', car: '6 กฌ 263', motor: '', note: 'นางสาวมาลี ใจเปีย'},
+ {house: '90/122', car: 'กธ 7624', motor: '', note: ''},
+ {house: '90/123', car: '2 ขพ 7202, 2กภ5034', motor: '', note: 'คุณมยุรา ประวรกรศิริ'},
 ];
 
-function badge(text,color){
- return `<span class="px-3 py-1 rounded-full text-xs bg-${color}-400/30 text-${color}-200">${text}</span>`;
+/* ================= CORE FUNCTIONS ================= */
+function loadDB() {
+    try { db = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch(e) { db = null; }
+    if (!db || !Array.isArray(db.users)) {
+        db = { users: [], records: [], nextId: 1 };
+        saveDB();
+    }
 }
 
-function displayServers(list){
- const box=document.getElementById("serversList");
- box.innerHTML="";
- list.forEach(s=>{
-  box.innerHTML+=`
-   <div class="glass anime-card rounded-3xl p-6">
-     <h2 class="text-xl font-semibold">${s.flag} ${s.country}</h2>
-     <p class="text-sm text-white/70">${s.ip}</p>
-     <div class="flex gap-2 mt-3">
-       ${badge(s.status,s.status=="Online"?"green":"yellow")}
-       ${badge(s.speed,"pink")}
-     </div>
-     <button class="mt-5 w-full py-3 rounded-xl
-       bg-gradient-to-r from-pink-400 to-purple-500">
-       ⚡ Connect
-     </button>
-   </div>`;
- });
+function saveDB() {
+    localStorage.setItem(KEY, JSON.stringify(db));
 }
 
-function filterServers(){
- const q=document.getElementById("searchInput").value.toLowerCase();
- displayServers(servers.filter(s=>s.country.toLowerCase().includes(q)));
+async function hash(s) {
+    if (window.crypto && crypto.subtle) {
+        try {
+            const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+            return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+        } catch(e) {}
+    }
+    let h = 0;
+    for(let i=0; i<s.length; i++) h = Math.imul(31, h) + s.charCodeAt(i) | 0;
+    return 'loc-' + h;
 }
 
-displayServers(servers);
+function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function toggleTheme() {
+    const root = document.documentElement;
+    const isDark = root.getAttribute('data-theme') === 'dark';
+    if(isDark) {
+        root.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+    } else {
+        root.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+    }
+}
+
+/* ================= AUTHENTICATION ================= */
+function showLogin() {
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('loginPage').classList.remove('hidden');
+    const isFirstTime = db.users.length === 0;
+    
+    document.getElementById('setupBox').classList.toggle('hidden', !isFirstTime);
+    document.getElementById('loginBox').classList.toggle('hidden', isFirstTime);
+    document.getElementById('loginError').textContent = '';
+}
+
+async function setupAdmin() {
+    const name = document.getElementById('setupName').value.trim() || 'ผู้ดูแลระบบ';
+    const username = document.getElementById('setupUser').value.trim();
+    const password = document.getElementById('setupPass').value;
+    
+    if (!username || password.length < 6) {
+        err('กรุณากรอกชื่อผู้ใช้และรหัสผ่านอย่างน้อย 6 ตัวอักษร'); return;
+    }
+    if (db.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+        err('ชื่อผู้ใช้นี้มีแล้วในระบบ'); return;
+    }
+    
+    db.users.push({
+        id: 1, name, username, pass: await hash(password), role: 'admin', created: new Date().toISOString()
+    });
+    
+    if(db.records.length === 0) {
+        db.records = initialRows.map((r, i) => ({...r, id: i+1, created: new Date().toISOString()}));
+        db.nextId = db.records.length + 1;
+    }
+    
+    saveDB();
+    toast('✅ สร้างบัญชีผู้ดูแลสำเร็จ!');
+    showLogin();
+}
+
+async function login() {
+    const username = document.getElementById('loginUser').value.trim();
+    const password = document.getElementById('loginPass').value;
+    const p = await hash(password);
+    
+    const u = db.users.find(x => x.username.toLowerCase() === username.toLowerCase() && x.pass === p);
+    if (!u) {
+        err('❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'); return;
+    }
+    
+    current = u;
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    
+    document.getElementById('who').textContent = u.name;
+    document.getElementById('rolePill').textContent = u.role === 'admin' ? '👑 ผู้ดูแลระบบ' : '👤 ผู้ใช้งาน';
+    document.getElementById('usersNav').classList.toggle('hidden', u.role !== 'admin');
+    
+    document.getElementById('loginPass').value = '';
+    
+    toast(`👋 ยินดีต้อนรับคุณ ${u.name}`);
+    tab('dashboard');
+}
+
+function err(msg) {
+    document.getElementById('loginError').textContent = msg;
+}
+
+function logout() {
+    current = null;
+    showLogin();
+    toast('ออกจากระบบแล้ว');
+}
+
+/* ================= ROUTING & RENDER ================= */
+function tab(t) {
+    activeTab = t;
+    document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === t));
+    render();
+}
+
+function render() {
+    const main = document.getElementById('main');
+    if (!current) return;
+    
+    main.style.opacity = 0;
+    setTimeout(() => {
+        if (activeTab === 'dashboard') main.innerHTML = dashboardView();
+        else if (activeTab === 'records') main.innerHTML = recordsView();
+        else if (activeTab === 'houses') main.innerHTML = housesView();
+        else if (activeTab === 'vehicles') main.innerHTML = vehiclesView();
+        else if (activeTab === 'users') main.innerHTML = current.role === 'admin' ? usersView() : '<div class="panel">ไม่มีสิทธิ์เข้าถึงหน้านี้</div>';
+        else main.innerHTML = backupView();
+        
+        main.style.transition = 'opacity 0.2s';
+        main.style.opacity = 1;
+    }, 50);
+}
+
+/* ================= VIEWS ================= */
+function allHouses() {
+    return [...new Set(db.records.map(r => r.house).filter(Boolean))];
+}
+
+function dashboardView() {
+    const cars = db.records.filter(r => r.car && r.car.trim()).length;
+    const motors = db.records.filter(r => r.motor && r.motor.trim()).length;
+    
+    return `
+    <div class="cards">
+        <div class="stat">
+            <div class="label">🏠 เลขที่บ้านทั้งหมด</div>
+            <div class="num" style="color: var(--blue);">${allHouses().length}</div>
+        </div>
+        <div class="stat">
+            <div class="label">🚗 รถยนต์</div>
+            <div class="num" style="color: var(--amber);">${cars}</div>
+        </div>
+        <div class="stat">
+            <div class="label">🏍️ จักรยานยนต์</div>
+            <div class="num" style="color: var(--green);">${motors}</div>
+        </div>
+        <div class="stat">
+            <div class="label">📋 รายการทั้งหมด</div>
+            <div class="num">${db.records.length}</div>
+        </div>
+    </div>
+    
+    <div class="panel">
+        <div class="panelhead">
+            <h2>⏱️ รายการอัปเดตล่าสุด</h2>
+            <button class="secondary small" onclick="tab('records')">ดูทั้งหมด ➔</button>
+        </div>
+        ${tableHTML(db.records.slice(-5).reverse())}
+    </div>
+    
+    <div class="two">
+        <div class="panel">
+            <h2>ทางลัดการจัดการ</h2>
+            <p class="muted tiny">เพิ่มข้อมูลบ้าน รถยนต์ จักรยานยนต์ อย่างรวดเร็ว</p>
+            <button onclick="openRecord()">＋ เพิ่มรายการใหม่</button>
+        </div>
+        <div class="panel">
+            <h2>พิมพ์รายงาน</h2>
+            <p class="muted tiny">พิมพ์ตารางข้อมูลทั้งหมด หรือเซฟเป็นไฟล์ PDF เก็บไว้</p>
+            <button class="secondary" onclick="window.print()">🖨️ พิมพ์หน้านี้</button>
+        </div>
+    </div>`;
+}
+
+function recordsView() {
+    return `
+    <div class="panel">
+        <div class="panelhead">
+            <h2>📋 ทะเบียนทั้งหมด (${db.records.length} รายการ)</h2>
+            <div class="inline">
+                <button class="secondary" onclick="exportCSV()">📥 ส่งออก CSV</button>
+                <button class="secondary" onclick="window.print()">🖨️ พิมพ์</button>
+                <button onclick="openRecord()">＋ เพิ่มรายการ</button>
+            </div>
+        </div>
+        <div class="toolbar">
+            <input class="search" id="recordSearch" placeholder="🔍 ค้นหาบ้าน, ทะเบียน, หมายเหตุ..." oninput="filterRecords()" style="flex:2; min-width:250px;">
+            <select id="typeFilter" class="search" onchange="filterRecords()" style="flex:1; min-width:150px;">
+                <option value="all">ยานพาหนะทุกประเภท</option>
+                <option value="car">🚗 มีรถยนต์</option>
+                <option value="motor">🏍️ มีรถจักรยานยนต์</option>
+                <option value="none">❌ ไม่มีทะเบียนรถ</option>
+            </select>
+        </div>
+        <div id="recordTable">
+            ${tableHTML([...db.records].sort((a,b) => a.house.localeCompare(b.house, 'th', {numeric: true})))}
+        </div>
+    </div>`;
+}
+
+function filterRecords() {
+    const q = (document.getElementById('recordSearch')?.value || '').toLowerCase();
+    const type = document.getElementById('typeFilter')?.value || 'all';
+    
+    let rows = [...db.records].filter(r => [r.house, r.car, r.motor, r.note].join(' ').toLowerCase().includes(q));
+    
+    if (type === 'car') rows = rows.filter(r => r.car);
+    if (type === 'motor') rows = rows.filter(r => r.motor);
+    if (type === 'none') rows = rows.filter(r => !r.car && !r.motor);
+    
+    document.getElementById('recordTable').innerHTML = tableHTML(rows);
+}
+
+function housesView() {
+    const hs = allHouses().sort((a,b) => a.localeCompare(b, 'th', {numeric: true}));
+    
+    return `
+    <div class="panel">
+        <div class="panelhead">
+            <h2>🏠 บ้านทั้งหมด (${hs.length} หลัง)</h2>
+            <button onclick="openRecord()">＋ เพิ่มรายการ</button>
+        </div>
+        <div class="tablewrap">
+            <table>
+                <thead><tr><th>เลขที่บ้าน</th><th>จำนวนรายการ</th><th>รถยนต์</th><th>จักรยานยนต์</th><th class="actions">จัดการ</th></tr></thead>
+                <tbody>
+                ${hs.map(h => {
+                    let rs = db.records.filter(r => r.house === h);
+                    return `<tr>
+                        <td><b style="color:var(--blue); font-size:16px;">${esc(h)}</b></td>
+                        <td><span class="pill" style="background:#f1f5f9; color:#475569;">${rs.length} รายการ</span></td>
+                        <td>${rs.filter(r => r.car).length} คัน</td>
+                        <td>${rs.filter(r => r.motor).length} คัน</td>
+                        <td class="actions">
+                            <button class="small secondary" onclick="tab('records'); setTimeout(()=>{document.getElementById('recordSearch').value=${JSON.stringify(h)};filterRecords()}, 50)">🔍 ดูข้อมูล</button>
+                        </td>
+                    </tr>`;
+                }).join('')}
+                </tbody>
+            </table>
+        </div>
+    </div>`;
+}
+
+function vehiclesView() {
+    let cars = db.records.filter(r => r.car);
+    let motors = db.records.filter(r => r.motor);
+    
+    return `
+    <div class="two">
+        <div class="panel">
+            <div class="panelhead"><h2>🚗 รถยนต์ (${cars.length})</h2></div>
+            ${vehicleTable(cars, 'car')}
+        </div>
+        <div class="panel">
+            <div class="panelhead"><h2>🏍️ จักรยานยนต์ (${motors.length})</h2></div>
+            ${vehicleTable(motors, 'motor')}
+        </div>
+    </div>`;
+}
+
+function vehicleTable(rows, field) {
+    if (!rows.length) return '<div class="empty">ไม่มีข้อมูลยานพาหนะ</div>';
+    return `
+    <div class="tablewrap">
+        <table>
+            <thead><tr><th>เลขที่บ้าน</th><th>ทะเบียน</th><th>หมายเหตุ</th><th class="actions"></th></tr></thead>
+            <tbody>
+            ${rows.map(r => `<tr>
+                <td>${esc(r.house)}</td>
+                <td><b>${esc(r[field])}</b></td>
+                <td class="muted">${esc(r.note || '-')}</td>
+                <td class="actions"><button class="small secondary icon-btn" onclick="openRecord(${r.id})" title="แก้ไข">✏️</button></td>
+            </tr>`).join('')}
+            </tbody>
+        </table>
+    </div>`;
+}
+
+function usersView() {
+    return `
+    <div class="panel">
+        <div class="panelhead">
+            <h2>👥 จัดการบัญชีผู้ใช้งาน</h2>
+            <button onclick="openUser()">＋ เพิ่มบัญชี</button>
+        </div>
+        <div class="notice">บัญชีเหล่านี้ใช้งานเฉพาะในเครื่อง (Device) และเบราว์เซอร์นี้เท่านั้น ระบบไม่ได้เชื่อมต่ออินเทอร์เน็ต</div>
+        <div class="tablewrap">
+            <table>
+                <thead><tr><th>ชื่อแสดงผล</th><th>ชื่อผู้ใช้ (Login)</th><th>สิทธิ์</th><th>วันที่สร้าง</th><th class="actions">จัดการ</th></tr></thead>
+                <tbody>
+                ${db.users.map(u => `<tr>
+                    <td><b>${esc(u.name)}</b></td>
+                    <td>${esc(u.username)}</td>
+                    <td><span class="pill ${u.role === 'admin' ? '' : 'secondary'}">${u.role === 'admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งาน'}</span></td>
+                    <td class="muted">${new Date(u.created).toLocaleDateString('th-TH')}</td>
+                    <td class="actions">
+                        ${u.id === current.id ? '<span class="muted tiny" style="padding:6px;">(บัญชีคุณ)</span>' : `<button class="small danger" onclick="deleteUser(${u.id})">🗑️ ลบ</button>`}
+                    </td>
+                </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>
+    </div>`;
+}
+
+function backupView() {
+    return `
+    <div class="two">
+        <div class="panel" style="border-top: 4px solid var(--blue)">
+            <h2>💾 สำรองข้อมูล (Backup)</h2>
+            <p class="muted">ดาวน์โหลดข้อมูลทั้งหมดรวมถึงบัญชีผู้ใช้ เป็นไฟล์ JSON เก็บไว้ เผื่อล้างเครื่องหรือเปลี่ยนเบราว์เซอร์</p>
+            <button onclick="backup()">⬇️ ดาวน์โหลดไฟล์สำรอง (.json)</button>
+        </div>
+        <div class="panel" style="border-top: 4px solid var(--amber)">
+            <h2>🔄 กู้คืนข้อมูล (Restore)</h2>
+            <p class="muted">นำไฟล์ .json ที่สำรองไว้กลับมาใช้ (คำเตือน: ข้อมูลปัจจุบันจะถูกลบทิ้งแทนที่ด้วยไฟล์นี้)</p>
+            <input type="file" id="restoreFile" accept=".json,application/json" class="search" style="margin-bottom:10px">
+            <button class="secondary" onclick="restore()">⬆️ เลือกไฟล์และกู้คืน</button>
+        </div>
+        <div class="panel">
+            <h2>📥 นำเข้าจาก Excel (CSV)</h2>
+            <p class="muted">เพิ่มข้อมูลจำนวนมากผ่านไฟล์ .csv (ต้องมีหัวคอลัมน์: house, car, motor, note)</p>
+            <input type="file" id="csvFile" accept=".csv,text/csv" class="search" style="margin-bottom:10px">
+            <button class="secondary" onclick="importCSV()">📊 นำเข้าไฟล์ CSV</button>
+        </div>
+        <div class="panel" style="border-top: 4px solid var(--red)">
+            <h2>⚠️ ล้างระบบ</h2>
+            <p class="muted">ลบข้อมูลทะเบียนทั้งหมดออกจากเครื่องนี้ทิ้ง (บัญชีผู้ใช้จะยังอยู่)</p>
+            <button class="danger" onclick="clearRecords()">🗑️ ลบทะเบียนทั้งหมด</button>
+        </div>
+    </div>`;
+}
+
+/* ================= COMPONENTS (TABLES & MODALS) ================= */
+function tableHTML(rows) {
+    if (!rows.length) return '<div class="empty">📄 ยังไม่มีข้อมูลในระบบ</div>';
+    
+    return `
+    <div class="tablewrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>เลขที่บ้าน</th>
+                    <th>รถยนต์</th>
+                    <th>รถจักรยานยนต์</th>
+                    <th>หมายเหตุ</th>
+                    <th class="actions">จัดการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rows.map(r => `
+                <tr>
+                    <td><b style="color:var(--blue); font-size:15px;">${esc(r.house || '-')}</b></td>
+                    <td>${r.car ? `<span style="border:1px solid var(--line); padding:4px 8px; border-radius:6px; background:var(--bg); font-weight:600;">${esc(r.car)}</span>` : '<span class="muted">-</span>'}</td>
+                    <td>${r.motor ? `<span style="border:1px solid var(--line); padding:4px 8px; border-radius:6px; background:var(--bg); font-weight:600;">${esc(r.motor)}</span>` : '<span class="muted">-</span>'}</td>
+                    <td class="muted">${esc(r.note || '-')}</td>
+                    <td class="actions">
+                        <button class="small secondary" onclick="openRecord(${r.id})">✏️ แก้ไข</button>
+                        ${current.role === 'admin' ? `<button class="small danger icon-btn" onclick="deleteRecord(${r.id})" title="ลบ">🗑️</button>` : ''}
+                    </td>
+                </tr>`).join('')}
+            </tbody>
+        </table>
+    </div>`;
+}
+
+function openRecord(id) {
+    editing = id || null;
+    const r = id ? db.records.find(x => x.id === id) : {house:'', car:'', motor:'', note:''};
+    
+    document.getElementById('modalRoot').innerHTML = `
+    <div class="modalback" onmousedown="if(event.target===this)closeModal()">
+        <div class="modal">
+            <div class="modalhead">
+                <h2>${id ? '✏️ แก้ไขข้อมูลทะเบียน' : '➕ เพิ่มข้อมูลทะเบียนใหม่'}</h2>
+                <button class="secondary icon-btn" onclick="closeModal()">✕</button>
+            </div>
+            <form onsubmit="saveRecord(event, ${id || 'null'})">
+                <div class="gridform">
+                    <div class="field">
+                        <label>🏠 เลขที่บ้าน *</label>
+                        <input name="house" required value="${esc(r.house)}" placeholder="เช่น 88/50 หรือ 90/15">
+                    </div>
+                    <div class="field">
+                        <label>🚗 ทะเบียนรถยนต์</label>
+                        <input name="car" value="${esc(r.car)}" placeholder="เช่น 6 กบ 3042">
+                    </div>
+                    <div class="field">
+                        <label>🏍️ ทะเบียนรถจักรยานยนต์</label>
+                        <input name="motor" value="${esc(r.motor)}" placeholder="เช่น 1 กน 7555">
+                    </div>
+                    <div class="field wide">
+                        <label>📝 หมายเหตุ</label>
+                        <textarea name="note" rows="3" placeholder="เช่น รถประจำบ้าน, Visitor, แจ้งเตือน...">${esc(r.note)}</textarea>
+                    </div>
+                </div>
+                <div class="inline" style="justify-content: flex-end; margin-top: 24px;">
+                    <button type="button" class="secondary" onclick="closeModal()">ยกเลิก</button>
+                    <button type="submit">💾 บันทึกข้อมูล</button>
+                </div>
+            </form>
+        </div>
+    </div>`;
+}
+
+function openUser() {
+    document.getElementById('modalRoot').innerHTML = `
+    <div class="modalback" onmousedown="if(event.target===this)closeModal()">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modalhead">
+                <h2>➕ เพิ่มบัญชีผู้ใช้งานใหม่</h2>
+                <button class="secondary icon-btn" onclick="closeModal()">✕</button>
+            </div>
+            <form onsubmit="saveUser(event)">
+                <div class="field">
+                    <label>ชื่อแสดงผล (Display Name)</label>
+                    <input name="name" required placeholder="เช่น พนักงาน รปภ.">
+                </div>
+                <div class="field">
+                    <label>ชื่อผู้ใช้ (Username สำหรับ Login)</label>
+                    <input name="username" required autocomplete="off" placeholder="ภาษาอังกฤษหรือตัวเลข">
+                </div>
+                <div class="field">
+                    <label>รหัสผ่าน (อย่างน้อย 6 ตัว)</label>
+                    <input name="pass" type="password" required minlength="6" autocomplete="new-password">
+                </div>
+                <div class="field">
+                    <label>ระดับสิทธิ์</label>
+                    <select name="role">
+                        <option value="user">👤 ผู้ใช้งาน (ดู เพิ่ม แก้ไขข้อมูล)</option>
+                        <option value="admin">👑 ผู้ดูแลระบบ (จัดการบัญชีและลบได้)</option>
+                    </select>
+                </div>
+                <div class="inline" style="justify-content: flex-end; margin-top: 24px;">
+                    <button type="button" class="secondary" onclick="closeModal()">ยกเลิก</button>
+                    <button type="submit">สร้างบัญชี</button>
+                </div>
+            </form>
+        </div>
+    </div>`;
+}
+
+function closeModal() {
+    const modal = document.querySelector('.modal');
+    if(modal) {
+        modal.style.animation = 'slideUp 0.2s reverse forwards';
+        document.querySelector('.modalback').style.animation = 'fadeIn 0.2s reverse forwards';
+        setTimeout(() => { document.getElementById('modalRoot').innerHTML = ''; }, 200);
+    }
+}
+
+/* ================= CRUD ACTIONS ================= */
+function saveRecord(e, id) {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const obj = {
+        house: f.get('house').trim(),
+        car: f.get('car').trim(),
+        motor: f.get('motor').trim(),
+        note: f.get('note').trim()
+    };
+    
+    if (id) {
+        Object.assign(db.records.find(r => r.id === id), obj);
+    } else {
+        obj.id = db.nextId++;
+        obj.created = new Date().toISOString();
+        db.records.push(obj);
+    }
+    
+    saveDB();
+    closeModal();
+    render();
+    toast(id ? '✅ บันทึกการแก้ไขแล้ว' : '✅ เพิ่มข้อมูลใหม่สำเร็จ');
+}
+
+function deleteRecord(id) {
+    if (current.role !== 'admin') { toast('❌ เฉพาะผู้ดูแลระบบที่ลบได้'); return; }
+    if (!confirm('⚠️ ยืนยันการลบข้อมูลนี้ถาวร?')) return;
+    
+    db.records = db.records.filter(r => r.id !== id);
+    saveDB();
+    render();
+    toast('🗑️ ลบข้อมูลเรียบร้อย');
+}
+
+async function saveUser(e) {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const username = f.get('username').trim();
+    
+    if (db.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+        toast('❌ ชื่อผู้ใช้นี้มีในระบบแล้ว'); return;
+    }
+    
+    db.users.push({
+        id: Math.max(0, ...db.users.map(u => u.id)) + 1,
+        name: f.get('name').trim(),
+        username,
+        pass: await hash(f.get('pass')),
+        role: f.get('role'),
+        created: new Date().toISOString()
+    });
+    
+    saveDB();
+    closeModal();
+    render();
+    toast('✅ สร้างบัญชีผู้ใช้ใหม่สำเร็จ');
+}
+
+function deleteUser(id) {
+    if (current.role !== 'admin') return;
+    if (id === current.id) { toast('❌ คุณไม่สามารถลบบัญชีตัวเองได้'); return; }
+    if (!confirm('⚠️ ยืนยันการลบบัญชีผู้ใช้งานนี้?')) return;
+    
+    db.users = db.users.filter(u => u.id !== id);
+    saveDB();
+    render();
+    toast('🗑️ ลบบัญชีเรียบร้อย');
+}
+
+/* ================= IMPORT & EXPORT ================= */
+function backup() {
+    const backupData = JSON.stringify({ ...db, backupAt: new Date().toISOString() }, null, 2);
+    const blob = new Blob([backupData], { type: 'application/json' });
+    downloadBlob(blob, `ทะเบียนบ้าน-รถ-สำรอง-${dateStamp()}.json`);
+    toast('💾 สร้างไฟล์สำรองข้อมูลเรียบร้อย');
+}
+
+function restore() {
+    const file = document.getElementById('restoreFile').files[0];
+    if (!file) { toast('❌ กรุณาเลือกไฟล์ .json'); return; }
+    if (!confirm('⚠️ คำเตือน: ข้อมูลที่มีอยู่ในระบบตอนนี้จะถูกลบและแทนที่ด้วยไฟล์นี้ทั้งหมด! ต้องการดำเนินการต่อหรือไม่?')) return;
+    
+    const reader = new FileReader();
+    reader.onload = () => {
+        try {
+            const x = JSON.parse(reader.result);
+            if (!Array.isArray(x.users) || !Array.isArray(x.records) || !x.users.length) throw Error('Invalid Format');
+            
+            db = {
+                users: x.users,
+                records: x.records,
+                nextId: Number(x.nextId) || Math.max(1, ...x.records.map(r => Number(r.id) || 0)) + 1
+            };
+            saveDB();
+            current = null;
+            showLogin();
+            toast('✅ กู้คืนข้อมูลสำเร็จ กรุณาล็อกอินใหม่');
+        } catch(e) {
+            toast('❌ ไฟล์ไม่ถูกต้อง หรือไม่ใช่ไฟล์สำรองของระบบนี้');
+        }
+    };
+    reader.readAsText(file);
+}
+
+function exportCSV() {
+    const rows = [['house','car','motor','note'], ...db.records.map(r => [r.house, r.car, r.motor, r.note])];
+    const csv = rows.map(r => r.map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n');
+    downloadBlob(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }), `รายการยานพาหนะ-${dateStamp()}.csv`);
+    toast('📥 ส่งออกไฟล์ CSV เรียบร้อย');
+}
+
+function importCSV() {
+    const file = document.getElementById('csvFile').files[0];
+    if (!file) { toast('❌ กรุณาเลือกไฟล์ .csv'); return; }
+    
+    const reader = new FileReader();
+    reader.onload = () => {
+        try {
+            const text = reader.result.replace(/^\ufeff/, ''); // Remove BOM
+            const rows = [];
+            let row=[], v='', q=false;
+            
+            for (let i = 0; i < text.length; i++) {
+                let c = text[i];
+                if (q) {
+                    if (c === '"' && text[i+1] === '"') { v += '"'; i++; }
+                    else if (c === '"') q = false;
+                    else v += c;
+                } else {
+                    if (c === '"') q = true;
+                    else if (c === ',') { row.push(v); v = ''; }
+                    else if (c === '\n') { row.push(v.replace(/\r$/, '')); rows.push(row); row = []; v = ''; }
+                    else v += c;
+                }
+            }
+            if (v.length || row.length) { row.push(v.replace(/\r$/, '')); rows.push(row); }
+            
+            if (rows.length < 2) throw Error('No data');
+            const heads = rows.shift().map(s => s.trim().toLowerCase());
+            const idx = { house: heads.indexOf('house'), car: heads.indexOf('car'), motor: heads.indexOf('motor'), note: heads.indexOf('note') };
+            
+            if (idx.house < 0) throw Error('Missing house column');
+            
+            let count = 0;
+            for (const a of rows) {
+                if (!a[idx.house]?.trim()) continue;
+                db.records.push({
+                    id: db.nextId++,
+                    house: a[idx.house].trim(),
+                    car: idx.car >= 0 ? (a[idx.car] || '').trim() : '',
+                    motor: idx.motor >= 0 ? (a[idx.motor] || '').trim() : '',
+                    note: idx.note >= 0 ? (a[idx.note] || '').trim() : ''
+                });
+                count++;
+            }
+            
+            saveDB();
+            render();
+            toast(`✅ นำเข้าสำเร็จ ${count} รายการ`);
+        } catch(e) {
+            toast('❌ อ่าน CSV ไม่ได้ ตรวจสอบว่ามีหัวคอลัมน์ house, car, motor, note');
+        }
+    };
+    reader.readAsText(file, 'UTF-8');
+}
+
+function clearRecords() {
+    if (current.role !== 'admin') return;
+    if (!confirm('⚠️ คำเตือนร้ายแรง: คุณกำลังจะลบข้อมูลทะเบียน "ทั้งหมด" ทิ้ง ยืนยันหรือไม่? (ควรสำรองไฟล์ก่อน)')) return;
+    
+    db.records = [];
+    db.nextId = 1;
+    saveDB();
+    render();
+    toast('🗑️ ล้างข้อมูลทะเบียนทั้งหมดเรียบร้อยแล้ว');
+}
+
+/* ================= UTILS ================= */
+function dateStamp() { return new Date().toISOString().slice(0,10); }
+
+function downloadBlob(blob, name) {
+    const a = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    a.href = url;
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function toast(msg) {
+    const el = document.getElementById('toastRoot');
+    el.innerHTML = `<div class="toast">${esc(msg)}</div>`;
+    setTimeout(() => el.innerHTML = '', 3000);
+}
+
+/* ================= INIT ================= */
+loadDB();
+showLogin();
+
 </script>
-
 </body>
 </html>
